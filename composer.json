@@ -1,12 +1,12 @@
 {
-    "name": "martin-lechene/laravel-audit-suite",
+    "name": "martin-lechene/audit-laravel",
     "description": "Package complet pour auditer automatiquement les projets Laravel sur 6 piliers : SEO, Sécurité, Performance, Base de données, Code Quality, et Infrastructure",
     "type": "library",
     "license": "MIT",
     "authors": [
         {
             "name": "Martin Lechene",
-            "email": "contact@martin-lechene.com"
+            "email": "martin@lechene.be"
         }
     ],
     "require": {
