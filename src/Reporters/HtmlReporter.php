@@ -9,7 +9,7 @@ class HtmlReporter implements ReporterContract
 {
     public function generate(AuditSession $session): string
     {
-        $findings = $session->findings()->orderBy('severity', 'desc')->orderBy('score', 'asc')->get();
+        $findings = $session->findings;
         
         $severityColors = [
             'critical' => '#dc3545',

@@ -5,7 +5,7 @@ namespace MartinLechene\AuditSuite\Auditors;
 use MartinLechene\AuditSuite\Contracts\AuditorContract;
 use MartinLechene\AuditSuite\Services\AuditContext;
 use MartinLechene\AuditSuite\Services\RuleEngine;
-use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 
 abstract class BaseAuditor implements AuditorContract
 {
@@ -26,8 +26,7 @@ abstract class BaseAuditor implements AuditorContract
                 $result = $rule->check($context);
                 $results[] = $result;
             } catch (\Throwable $e) {
-                // Log error but continue with other rules
-                \Log::error("Error executing rule {$rule->getName()}: " . $e->getMessage());
+                Log::error("Error executing rule {$rule->getName()}: " . $e->getMessage());
             }
         }
 

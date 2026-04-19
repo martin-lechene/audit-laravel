@@ -43,8 +43,8 @@ class MarkdownReporter implements ReporterContract
             $output[] = "";
         }
 
-        // Detailed findings
-        $findings = $session->findings()->orderBy('severity', 'desc')->orderBy('score', 'asc')->get();
+        // Detailed findings (pre-sorted by AuditService)
+        $findings = $session->findings;
         
         if ($findings->count() > 0) {
             $output[] = "## Detailed Findings";
