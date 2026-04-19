@@ -10,14 +10,20 @@ use MartinLechene\AuditSuite\Auditors\SeoAuditor;
 use MartinLechene\AuditSuite\Auditors\SecurityAuditor;
 use MartinLechene\AuditSuite\Commands\AuditCommand;
 use MartinLechene\AuditSuite\Rules\CodeQualityRules\Psr12ComplianceRule;
+use MartinLechene\AuditSuite\Rules\CodeQualityRules\TestsExistRule;
 use MartinLechene\AuditSuite\Rules\DatabaseRules\MigrationsStatusRule;
+use MartinLechene\AuditSuite\Rules\InfrastructureRules\EnvVariablesRule;
 use MartinLechene\AuditSuite\Rules\InfrastructureRules\PermissionsRule;
 use MartinLechene\AuditSuite\Rules\InfrastructureRules\PhpVersionRule;
+use MartinLechene\AuditSuite\Rules\PerformanceRules\CacheConfigRule;
 use MartinLechene\AuditSuite\Rules\PerformanceRules\SlowQueriesRule;
+use MartinLechene\AuditSuite\Rules\SecurityRules\AppKeySetRule;
 use MartinLechene\AuditSuite\Rules\SecurityRules\CsrfProtectionRule;
+use MartinLechene\AuditSuite\Rules\SecurityRules\DebugModeRule;
 use MartinLechene\AuditSuite\Rules\SecurityRules\HttpsEnforcedRule;
 use MartinLechene\AuditSuite\Rules\SeoRules\MetaDescriptionRule;
 use MartinLechene\AuditSuite\Rules\SeoRules\RobotsTxtRule;
+use MartinLechene\AuditSuite\Rules\SeoRules\SitemapRule;
 use MartinLechene\AuditSuite\Services\AuditService;
 use MartinLechene\AuditSuite\Services\CacheManager;
 use MartinLechene\AuditSuite\Services\RuleEngine;
@@ -32,7 +38,6 @@ class AuditSuiteServiceProvider extends ServiceProvider
             'audit-suite'
         );
 
-        // Enregistrer les services
         $this->app->singleton(RuleEngine::class);
         $this->app->singleton(CacheManager::class);
         $this->app->singleton(AuditService::class, function ($app) {
@@ -45,26 +50,19 @@ class AuditSuiteServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // Publier la configuration
         $this->publishes([
             __DIR__ . '/../config/audit-suite.php' => config_path('audit-suite.php'),
         ], 'audit-suite-config');
 
-        // Publier les migrations
         $this->publishes([
             __DIR__ . '/../database/migrations' => database_path('migrations'),
         ], 'audit-suite-migrations');
 
-        // Charger les migrations
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
 
-        // Enregistrer les règles
         $this->registerRules();
-
-        // Enregistrer les auditors
         $this->registerAuditors();
 
-        // Enregistrer la commande
         if ($this->app->runningInConsole()) {
             $this->commands([
                 AuditCommand::class,
@@ -76,26 +74,32 @@ class AuditSuiteServiceProvider extends ServiceProvider
     {
         $ruleEngine = $this->app->make(RuleEngine::class);
 
-        // SEO Rules
+        // SEO Rules (3)
         $ruleEngine->registerRule(new MetaDescriptionRule());
         $ruleEngine->registerRule(new RobotsTxtRule());
+        $ruleEngine->registerRule(new SitemapRule());
 
-        // Security Rules
+        // Security Rules (4)
         $ruleEngine->registerRule(new HttpsEnforcedRule());
         $ruleEngine->registerRule(new CsrfProtectionRule());
+        $ruleEngine->registerRule(new DebugModeRule());
+        $ruleEngine->registerRule(new AppKeySetRule());
 
-        // Performance Rules
+        // Performance Rules (2)
         $ruleEngine->registerRule(new SlowQueriesRule());
+        $ruleEngine->registerRule(new CacheConfigRule());
 
-        // Database Rules
+        // Database Rules (1)
         $ruleEngine->registerRule(new MigrationsStatusRule());
 
-        // Code Quality Rules
+        // Code Quality Rules (2)
         $ruleEngine->registerRule(new Psr12ComplianceRule());
+        $ruleEngine->registerRule(new TestsExistRule());
 
-        // Infrastructure Rules
+        // Infrastructure Rules (3)
         $ruleEngine->registerRule(new PhpVersionRule());
         $ruleEngine->registerRule(new PermissionsRule());
+        $ruleEngine->registerRule(new EnvVariablesRule());
     }
 
     private function registerAuditors(): void
@@ -103,7 +107,6 @@ class AuditSuiteServiceProvider extends ServiceProvider
         $auditService = $this->app->make(AuditService::class);
         $ruleEngine = $this->app->make(RuleEngine::class);
 
-        // Enregistrer les auditors
         $auditService->registerAuditor(new SeoAuditor($ruleEngine));
         $auditService->registerAuditor(new SecurityAuditor($ruleEngine));
         $auditService->registerAuditor(new PerformanceAuditor($ruleEngine));

@@ -9,7 +9,7 @@ class JsonReporter implements ReporterContract
 {
     public function generate(AuditSession $session): string
     {
-        $findings = $session->findings()->orderBy('severity', 'desc')->orderBy('score', 'asc')->get();
+        $findings = $session->findings;
 
         $data = [
             'project_name' => $session->project_name,

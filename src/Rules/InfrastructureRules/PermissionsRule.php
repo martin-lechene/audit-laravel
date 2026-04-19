@@ -76,5 +76,3 @@ class PermissionsRule extends BaseRule
         return 'https://laravel.com/docs/installation#permissions';
     }
 }
-
-    
