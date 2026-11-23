@@ -52,6 +52,11 @@ jobs:
           coverage: none
 
       - name: Install dependencies
+        # Every release of Laravel 10 and 11 is now flagged by Composer security advisories, which makes
+        # Composer refuse to resolve them. They are still tested for compatibility, so blocking is disabled
+        # for those legs only (Laravel 12 keeps the default behaviour).
+        env:
+          COMPOSER_NO_SECURITY_BLOCKING: ${{ matrix.laravel != '12.*' && '1' || '' }}
         run: |
           composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --dev --no-interaction --no-update
           composer update --prefer-stable --prefer-dist --no-interaction --with-all-dependencies
