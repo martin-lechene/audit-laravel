@@ -9,6 +9,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -16,14 +20,25 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # PHPUnit 12 (patched, CVE-safe) requires PHP 8.3+.
-        # The package itself supports PHP 8.1+ and Laravel 10/11/12 at runtime;
-        # the test suite runs on the minimum safe PHPUnit version (^12.5.22).
-        php: ['8.3', '8.4']
-        laravel: ['12.*']
-        stability: [prefer-stable]
+        # Laravel 10: PHP 8.1-8.3 | Laravel 11: PHP 8.2-8.4 | Laravel 12: PHP 8.2-8.4
+        php: ['8.1', '8.2', '8.3', '8.4']
+        laravel: ['10.*', '11.*', '12.*']
+        include:
+          - laravel: '10.*'
+            testbench: '^8.0'
+          - laravel: '11.*'
+            testbench: '^9.0'
+          - laravel: '12.*'
+            testbench: '^10.0'
+        exclude:
+          - php: '8.1'
+            laravel: '11.*'
+          - php: '8.1'
+            laravel: '12.*'
+          - php: '8.4'
+            laravel: '10.*'
 
-    name: PHP ${{ matrix.php }} — Laravel ${{ matrix.laravel }}
+    name: PHP ${{ matrix.php }} / Laravel ${{ matrix.laravel }}
 
     steps:
       - name: Checkout
@@ -33,17 +48,13 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite
+          extensions: dom, curl, libxml, mbstring, zip, pdo, sqlite, pdo_sqlite
           coverage: none
 
       - name: Install dependencies
         run: |
-          composer require \
-            "laravel/framework:${{ matrix.laravel }}" \
-            "orchestra/testbench:^10.0" \
-            --no-interaction \
-            --no-update
-          composer update --${{ matrix.stability }} --prefer-dist --no-interaction
+          composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --dev --no-interaction --no-update
+          composer update --prefer-stable --prefer-dist --no-interaction --with-all-dependencies
 
       - name: Run tests
         run: vendor/bin/phpunit
