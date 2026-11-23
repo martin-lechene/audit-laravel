@@ -33,7 +33,7 @@ class JsonReporter implements ReporterContract
                     'fix_suggestion' => $finding->fix_suggestion,
                     'evidence' => $finding->evidence,
                     'score' => $finding->score,
-                    'created_at' => $finding->created_at->toIso8601String(),
+                    'created_at' => $finding->created_at?->toIso8601String(),
                 ];
             })->toArray(),
         ];
